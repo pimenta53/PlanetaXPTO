@@ -1,0 +1,409 @@
+#include "md2/Md2Player.h"
+#include <stdlib.h>
+#include <GL/glut.h>
+#include <IL/il.h>
+#include <math.h>
+#include <stdio.h>
+#include <time.h>
+#include <string.h>
+#include <math.h>
+#include "glm.h"
+#include "scene.h"
+#include "terrain.h"
+//#include "vars.h"
+
+extern float fMetro;
+extern int largura;								    //width da imagem
+extern int comprimento;								//height da imagem
+extern int bordaTerreno;
+extern float* alturas;
+extern int nAtingido;
+extern float balas[nBalas][4];
+extern float raioArvore;
+extern int dead;
+
+extern float playerX,x, playerZ,z, playerY,y;             //Posicao do avatar em modo TPS
+extern GLMmodel *agente,*key,*tower,*arvore,*castelo,*tesouro;
+extern Md2Player *boneco, *torreMD, *tree;
+extern int view ;
+extern float alpha , beta ;			                //Angulos utilizados para calculo da posicao da camara e para onde ela aponta
+extern float camX , camY, camZ;					    //Posicaos da camara
+extern float dirX, dirY, dirZ;					    //Vector director onde a camara aponta
+extern float arvores[nArvores][3];
+extern float posChave[nChaves][3];
+extern float posTorre[nTorres][4];
+extern int keys[nChaves];
+extern int windowSizeInitial[2];
+extern float factorMetro;
+extern float endX;
+extern float endZ;
+extern int castel;
+
+
+extern int displayList;
+extern int keysPlayer;
+extern int keysScene;
+extern int vbo;
+
+extern int move;
+
+/*Radianos para Graus*/
+float radToDeg(float val) {
+	return ((180*val)/M_PI);
+}
+
+float degToRad(float val) {
+	return val * M_PI / 180;
+}
+
+/*Função que calcula o ângulo, no plano XOZ, formado pelos pontos passados como parâmetro com a posição actual do jogador*/ 
+float calcAng(float b, float c, float playerx, float playerz){
+
+
+	float dir[3];
+	dir[0] = playerx - b;
+	dir[2] = playerz - c;
+	float dist = (sqrt(pow(dir[0], 2) + pow(dir[2], 2)));
+	float ang = acos(dir[0] / dist);
+	if (playerz > c) {
+            ang = -ang;
+	}
+	return radToDeg(ang);
+
+}
+
+/*Função que recebe dois arrays de floats (coordenadas de dois pontos) e calcula a distância entre estes*/
+float dist(float a[3], float b[3]) {
+
+	float dx, dy, dz;
+	
+	dx = a[0] - b[0];
+	dy = a[1] - b[1];
+	dz = a[2] - b[2];
+
+	return (sqrt(dx*dx + dy*dy + dz*dz));
+}
+
+
+
+/*Função que calcula as coordenadas das torres aleatoriamente e armazena-as*/
+void initTower(){
+	
+	// distribuir os guardiões no terreno
+	for(int i = 0; i < nTorres; i++) {
+
+		posTorre[i][XX] = ((rand()%(int)(largura))-(largura/2));		// posicao da chave em X
+		posTorre[i][ZZ] = ((rand()%(int)(largura))-(largura/2));		// posicao da chave em Z
+		posTorre[i][XX] < 0.0f ? posTorre[i][XX]+=bordaTerreno : posTorre[i][XX]-=bordaTerreno;			// coloca em X tendo em consideração a borda
+		posTorre[i][ZZ] < 0.0f ? posTorre[i][ZZ]+=bordaTerreno : posTorre[i][ZZ]-=bordaTerreno;			// coloca em Y tendo em consideração a borda 
+		posTorre[i][YY] = getAlturaSmoothWalk(alturas, largura, posTorre[i][XX]+largura/2, posTorre[i][ZZ]+largura/2)+0.3;	// posicao da chave em Y
+		//posTorre[i][ANG] = (((double)rand() / RAND_MAX)*180);
+		posTorre[i][3] = 0;
+	}
+
+}
+
+/*Função que calcula as coordenadas das árvores aleatoriamente e guarda-as*/
+void initArvores(){
+	for(int i = 0; i < nArvores; i++) {
+		arvores[i][XX] = ((rand()%(int)(largura))-(largura/2));		// posicao da chave em X
+		arvores[i][ZZ] = ((rand()%(int)(largura))-(largura/2));		// posicao da chave em Z
+		arvores[i][XX] < 0.0f ? arvores[i][XX]+=bordaTerreno : arvores[i][XX]-=bordaTerreno;			// coloca em X tendo em consideração a borda
+		arvores[i][ZZ] < 0.0f ? arvores[i][ZZ]+=bordaTerreno : arvores[i][ZZ]-=bordaTerreno;			// coloca em Y tendo em consideração a borda 
+		arvores[i][YY] = getAlturaSmoothWalk(alturas, largura, arvores[i][XX]+largura/2, arvores[i][ZZ]+largura/2)-0.75;	// posicao da chave em Y
+ 
+	}
+
+}
+
+
+/*Função que calcula as coordenadas das chaves aleatoriamente e guarda-as*/
+void initChaves() {
+	
+	for(int i = 0; i < nChaves; i++) {
+		keys[i] = 0;// caso a chave não tenha sido apanhada
+		posChave[i][XX] = ((rand()%(int)(largura))-(largura/2));	// posicao da chave em X
+		posChave[i][ZZ] = ((rand()%(int)(largura))-(largura/2));	// posicao da chave em Z
+		posChave[i][XX] < 0.0f ? posChave[i][XX]+=bordaTerreno : posChave[i][XX]-=bordaTerreno;		// coloca em X tendo em consideração a borda
+		posChave[i][ZZ] < 0.0f ? posChave[i][ZZ]+=bordaTerreno : posChave[i][ZZ]-=bordaTerreno;		// coloca em Y tendo em consideração a borda
+		posChave[i][YY] = getAlturaSmoothWalk(alturas, largura, posChave[i][XX]+largura/2, posChave[i][ZZ]+largura/2);	// posicao da chave em Y
+	}
+}
+
+
+void initScence(){
+	// inicialização das variáveis X e Y para o agente
+	playerX =  (largura/2 - (largura/2)*0.25);		// posicao inicial em X
+	playerZ = -(largura/2 - (largura/2)*0.25);		// posicao inicial em Y
+
+	// atribuição da altura correcta
+	// (alturas do terreno, largura, posicao em X, posicao em Y)
+	//playerY = getAltura(alturas, largura, x+lx+largura/2, z+lz+largura/2);
+
+
+	initChaves();
+	initTower();
+    initArvores();
+}
+
+
+/*Desenho do agente, num extremo do vale*/
+void drawPlayer() {
+	playerY = getAlturaSmoothWalk(alturas, largura, playerX+largura/2, playerZ+largura/2);
+	if(view == TPS) {
+		glPushMatrix();
+		
+		glTranslatef(playerX, playerY, playerZ);
+		glRotatef(radToDeg(alpha), 0.0, 1.0, 0.0);
+		boneco->animate(0.5);
+		if(move>0) {
+			boneco->animate(0.5);
+			boneco->drawPlayerItp (true,static_cast<Md2Object::Md2RenderMode>(0));
+		}
+		else {boneco->animate(0.0);
+			boneco->drawPlayerFrame (0,static_cast<Md2Object::Md2RenderMode>(0));
+		}
+		//glmDraw(agente, GLM_MATERIAL | GLM_SMOOTH);
+		glPopMatrix();
+	}
+	glPushMatrix();
+	glTranslatef(camX + 2*dirX, camY + 2*dirX, camZ + 2*dirX);
+	glutSolidSphere(0.005, 10, 10);										
+	glPopMatrix();
+	
+}
+
+/*Função que verifica se a distância entre as chaves e o jogador é menor que radarChave e guarda para uma string a distância a que se encontra 
+a chave mais próxima*/
+void detectaChaves(char *ptr) {
+	float posJogador[3];
+	float chave[3];
+	float distMin = radarChave;
+	int numChave = -1;
+	float aux;
+
+		posJogador[XX] = playerX; 
+		posJogador[YY] = playerY; 
+		posJogador[ZZ] = playerZ;
+
+		
+	for(int i=0; i<nChaves; i++) {
+			if(!keys[i]) {
+				chave[XX] = posChave[i][XX]; chave[YY] = posChave[i][YY]; chave[ZZ] = posChave[i][ZZ];
+				aux = dist(chave,posJogador);
+				if (aux < distMin && aux < radarChave) {
+					distMin = aux;
+					numChave = i;
+				}
+			}
+		}
+
+			// caso a chave mais próxima seja apanhada
+		if(distMin < distToque) {
+			keys[numChave] = 1;
+			keysPlayer++;
+			castel = 1;
+		}
+		else{
+			if (numChave != -1) sprintf_s(ptr,100,"A chave mais proxima encontra-se a %.2f metros!",distMin);
+		else{ if(keysPlayer==nChaves) sprintf_s(ptr,100,"TESOURO DESBLOQUEADO");
+			else sprintf_s(ptr,100,"Nenhuma chave detectada!");
+			}
+		}
+
+}
+		// desenha nArvores no cenário
+void drawArvores(){
+	for(int i=0; i<nArvores; i++){
+		glPushMatrix();
+			glTranslatef(arvores[i][XX], arvores[i][YY], arvores[i][ZZ]);
+			/*tree->setScale(0.03f);
+			tree->drawPlayerItp(0,static_cast<Md2Object::Md2RenderMode>(0));
+			tree->animate(0.1);*/
+			glmDraw(arvore, GLM_SMOOTH | GLM_MATERIAL);
+		glPopMatrix();
+	}
+}
+
+
+//desenha balas que pra ja sao setas ou triangulos
+void drawBala(int i){
+
+	
+
+    //glRotatef(1 + balas[i][0], 1,0,0); //angulo de disparo
+    balas[i][2] += sin(degToRad(-balas[i][0])); // posição z
+	balas[i][1] += cos(degToRad(-balas[i][0])); // posição x
+
+	
+	//verifica se sai do terreno
+	if(balas[i][2] > (comprimento/2) || -balas[i][2] > (comprimento/2)) balas[i][3]=0.0;
+	if(balas[i][1] > (largura/2) || -balas[i][1] > (largura/2)) balas[i][3]=0.0;
+
+
+	//verificar se bate contra arvore
+	for(int j=0; j<nArvores; j++){
+		if((pow((balas[i][1]-arvores[j][XX]),2)+pow((balas[i][2]-arvores[j][ZZ]),2)) <= pow(raioArvore,2)){
+		   balas[i][3]=0.0;
+		}
+	}
+
+	//verificar se bate contra castelo
+	/*
+	if((pow((balas[i][1]-arvores[j][XX]),2)+pow((balas[i][2]-arvores[j][ZZ]),2)) <= pow(raioArvore,2)){
+		   balas[i][3]=0.0;
+		}*/
+
+	if(castel == 1 && (balas[i][1]>endX-5 && balas[i][1]<endX+5) && (balas[i][2]>endZ-5 && balas[i][2]<endZ+5)) { balas[i][3]=0.0;}
+
+	if(balas[i][3]==0.0) return;
+	
+	
+	glPushMatrix();
+	glTranslatef(balas[i][1],getAlturaSmoothWalk(alturas, largura, balas[i][1]+largura/2, balas[i][2]+largura/2) + 0.5,balas[i][2]);
+	glRotatef(balas[i][0] , 0, 1, 0);
+	glmDraw(tower , GLM_MATERIAL | GLM_SMOOTH);
+	glPopMatrix();   
+	
+	
+	//quando vala atinge boneco é desactivada e conta que atingiu
+
+	if((pow((playerX-balas[i][1]),2)+pow((playerZ-balas[i][2]),2)) <= pow(1.0,2)) {
+		nAtingido += 1;
+		balas[i][3] = 0.0;
+		dead += 1;
+		return;
+	}
+	
+	
+}
+//pega na posição do jogador e "dispara a bala"
+void dispara(float playerX, float playerZ, float torreX, float torreY, float torreZ){
+    
+	float anguloDisp = calcAng(torreX,torreZ,playerX, playerZ);
+    
+    for(int i=0; i<nBalas; i++){
+        if(balas[i][3]!=1.0){  // caso a posição da bala esteja vazia
+			balas[i][0] = anguloDisp;  //angulo de disparo da bala
+			balas[i][1] = torreX;      //posição da torre de onde foi disparada X
+			balas[i][2] = torreZ;      //posição da torre de onde foi disparada Z
+            balas[i][3] = 1.0; //esta em acção
+			
+            return;
+            }
+     }
+}
+
+
+void detectaTorres(){
+
+	float posJogador[3];
+	float torre[3];
+	
+	posJogador[0] = playerX; posJogador[1] = playerY; posJogador[2] = playerZ;
+	
+	glPushMatrix();
+	for(int i = 0; i < nTorres; i++){
+		torre[0] = posTorre[i][0]; torre[1] = posTorre[i][1]; torre[2] = posTorre[i][2];
+		float aux = dist(torre,posJogador);
+		if(aux/factorMetro < radarTorre) {
+	      glPushMatrix();
+		  glTranslatef(posTorre[i][0],posTorre[i][1],posTorre[i][2]);
+		  glRotatef(calcAng(posTorre[i][0],posTorre[i][2], playerX, playerZ) + 90, 0, 1, 0);         
+		  //glRotatef(-90,0,1,0);
+		  glmDraw(tower, GLM_MATERIAL | GLM_SMOOTH);
+		  /*torreMD->setScale(0.1f);
+		  torreMD->drawPlayerItp(0,static_cast<Md2Object::Md2RenderMode>(0));
+		  torreMD->animate(0.1);*/
+		  glPopMatrix();   
+		  //para ver se passaram 3 segundos para poder disparar
+		  if(((posTorre[i][3])+3000) < glutGet(GLUT_ELAPSED_TIME)){
+			//DESENHAR BALA
+			
+			dispara(playerX,playerZ,posTorre[i][0], posTorre[i][1], posTorre[i][2]);
+			//printf("passaram 3 segundos");
+			posTorre[i][3] = glutGet(GLUT_ELAPSED_TIME);			
+		  }
+		}
+		else{
+	      glPushMatrix();
+		  glTranslatef(posTorre[i][0],posTorre[i][1],posTorre[i][2]);
+          glmDraw(tower, GLM_MATERIAL | GLM_SMOOTH);
+		  glPopMatrix();   
+		}
+	}
+	glPopMatrix();
+}
+
+/*Função que desenha as chaves no cenário consoante as suas coordenadas calculadas*/
+void drawChave(){
+	float altura1,altura2;
+	glPushMatrix();
+
+       
+	for(int i = 0; i < nChaves; i++){
+		glPushAttrib(GL_ALL_ATTRIB_BITS);
+		glPushMatrix();
+		if(keys[i]==0) {
+			glTranslatef(posChave[i][0],posChave[i][1],posChave[i][2]);
+			// calcula as alturas da chave (para uma ponta e para a outra) EU PONHA ANTES A CHAVE DE PÉ, MAS PODEMOS DISCUTIR ISTO ;)
+			altura1 = getAlturaSmoothWalk(alturas, largura, posChave[i][XX]-2.5+largura/2, posChave[i][ZZ]+largura/2);
+			altura2 = getAlturaSmoothWalk(alturas, largura, posChave[i][XX]+2.5+largura/2, posChave[i][ZZ]+largura/2);
+			glRotatef(atan((-1*(altura1-altura2))/5)*RAD,0,0,1);
+			glmDraw(key,GLM_SMOOTH|GLM_MATERIAL);
+			glPopMatrix();
+		}
+	}
+	glPopMatrix();
+	glPopMatrix();
+}
+
+
+/*Função que desenha o tesouro dentro do castelo*/
+void drawTesouro() {
+	glPushMatrix();
+	glTranslatef(0,0.4,-(largura/2)+20);
+	glmDraw(tesouro,GLM_SMOOTH|GLM_MATERIAL);
+	glPopMatrix();
+}
+
+/*Função que desenha o castelo,no vale, no extremo oposto ao agente*/
+void drawCastelo() {
+	glmDraw(castelo,GLM_SMOOTH|GLM_MATERIAL);
+}
+
+// verifica se o castelo aparece
+void setCastelo() {
+	// desenha apenas se apanhou todas as chaves
+	if(keysPlayer == nChaves){
+		glPushMatrix();
+			glTranslatef(0,getAltura(alturas, largura, 0+largura/2, 0+largura/2), 0);
+			if(!vbo) glCallList(displayList+1);
+			else drawCastelo();
+		glPopMatrix();
+	}
+}
+
+
+// escala
+void escala() {
+	int i;
+	glColor3f(0.8, 0.6, 0.4);
+	for(i=0; i<5; i++) {
+		glPushMatrix();
+			glTranslatef(i, getAltura(alturas, largura, i, 0), 0);
+		glPopMatrix();
+	}
+}
+
+// centro
+void centro() {
+	glPushMatrix();
+		glColor3f(1, 1, 1);
+		glTranslatef(0, getAltura(alturas, largura, 0, 0), 0);
+	glPopMatrix();
+	glPushMatrix();
+		glColor3f(1, 1, 1);
+		glTranslatef(largura/2, 50, largura/2);
+	glPopMatrix();
+}

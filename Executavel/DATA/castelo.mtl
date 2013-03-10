@@ -1,0 +1,56 @@
+#
+# castelo.mtl
+#
+
+newmtl Stone_Coursed_Rough
+illum 2
+Kd 0.647059 0.627451 0.509804
+Ka 0.000000 0.000000 0.000000
+Ks 0.330000 0.330000 0.330000
+Ke 0.000000 0.000000 0.000000
+Ns 0.000000
+map_Kd \\Lappy-wifi\nunofgs\Documents\School\CG\Trabalho 1\KeyFighter\Recursos/castelo/Stone_Coursed_Rough.jpg
+
+newmtl Metal_Seamed
+illum 2
+Kd 0.462745 0.466667 0.450980
+Ka 0.000000 0.000000 0.000000
+Ks 0.330000 0.330000 0.330000
+Ke 0.000000 0.000000 0.000000
+Ns 0.000000
+map_Kd \\Lappy-wifi\nunofgs\Documents\School\CG\Trabalho 1\KeyFighter\Recursos/castelo/Metal_Seamed.jpg
+
+newmtl Wood_Lumber_ButtJoined
+illum 2
+Kd 0.643137 0.596078 0.439216
+Ka 0.000000 0.000000 0.000000
+Ks 0.330000 0.330000 0.330000
+Ke 0.000000 0.000000 0.000000
+Ns 0.000000
+map_Kd \\Lappy-wifi\nunofgs\Documents\School\CG\Trabalho 1\KeyFighter\Recursos/castelo/Wood_Lumber_ButtJoined.jpg
+
+newmtl FrontColor
+illum 2
+Kd 1.000000 1.000000 1.000000
+Ka 0.000000 0.000000 0.000000
+Ks 0.330000 0.330000 0.330000
+Ke 0.000000 0.000000 0.000000
+Ns 0.000000
+
+newmtl Metal_Rough
+illum 2
+Kd 0.600000 0.615686 0.627451
+Ka 0.000000 0.000000 0.000000
+Ks 0.330000 0.330000 0.330000
+Ke 0.000000 0.000000 0.000000
+Ns 0.000000
+map_Kd \\Lappy-wifi\nunofgs\Documents\School\CG\Trabalho 1\KeyFighter\Recursos/castelo/Metal_Rough.jpg
+
+newmtl Roofing_Slate_Dark
+illum 2
+Kd 0.388235 0.411765 0.423529
+Ka 0.000000 0.000000 0.000000
+Ks 0.330000 0.330000 0.330000
+Ke 0.000000 0.000000 0.000000
+Ns 0.000000
+map_Kd \\Lappy-wifi\nunofgs\Documents\School\CG\Trabalho 1\KeyFighter\Recursos/castelo/Roofing_Slate_Dark.jpg

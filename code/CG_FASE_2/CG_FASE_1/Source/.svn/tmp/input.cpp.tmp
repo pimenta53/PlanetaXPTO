@@ -1,0 +1,237 @@
+#include <stdlib.h>
+#include <stdio.h>
+#include <math.h>
+#include <string.h>
+#include <time.h>
+#include <GL/glut.h>
+#include <IL/il.h>
+#include "input.h"
+#include "terrain.h"
+#include "main.cpp"
+
+
+#define _USE_MATH_DEFINES
+
+extern bool wrap;								//utilizado no posicionamento do cursor
+extern float alpha , beta ;						//Angulos utilizados para calculo da posicao da camara e para onde ela aponta
+
+extern int view ;								//Variavel que define o modo FPS ou TPS
+extern float camX , camY, camZ ;				//Posicaos da camara
+extern float eyeX, eyeY, eyeZ;                  //Posicao onde a camara aponta
+extern float playerX, playerZ, playerY;         //Posicao do player
+extern float dirX, dirY, dirZ;                  //Vector director onde a camara aponta
+extern float rightX, rightZ;                    //Vector director que aponta para a direita
+extern bool frente, traz, left, right, rotateEsq, rotateDir, rotateU, rotateD; //difinem um estado associado ˆs teclas que podem estar(UP/DOWN)
+extern float *alturas;
+extern int largura;
+
+extern float arvores[nArvores][3];
+extern float raioArvore;
+
+//Calculo das posi›es da camara e do player
+void calcPos(float a, float b) {
+	if(view == FPS) {
+		eyeX = camX + (cos(b) * sin(a));
+		eyeZ = camZ + (cos(b) * cos(a));
+		eyeY = camY + (sin(b));
+	}   
+	else {
+		eyeX = playerX + (cos(b) * sin(a));
+		eyeZ = playerZ + (cos(b) * cos(a));
+		eyeY = playerY + (sin(b));
+		camX = playerX + (5 * cos((M_PI/10)-b) * sin(M_PI + a));
+		camZ = playerZ + (5 * cos((M_PI/10)-b) * cos (M_PI + a));
+		camY = playerY + (5 * sin((M_PI/10)-b));
+	}
+}
+
+
+/*Funcao que calcula, para cada frame, os vectores directores utilizados para a movimentacao*/
+void updateDir() {
+	
+	float x = eyeX - camX;
+	float y = eyeY - camY;
+	float z = eyeZ - camZ;
+	float comp = sqrt((x*x) + (y*y) + (z*z));
+	dirX = x/comp;								
+	dirZ = z/comp;
+	dirY = y/comp;	
+	rightX = -dirZ;	
+	rightZ = dirX;
+	
+}
+
+
+/************************************************************************************************************************
+ ************************* FUNCOES TECLADO E RATO ************************************************************************
+ ************************************************************************************************************************/
+
+
+//Calculo dos novos angulos 'alpha' e 'beta' baseados na dist‰ncia percorrida pelo rato
+void fpassiveMouse(int xx, int yy) {
+	
+	float w = glutGet(GLUT_WINDOW_WIDTH);
+	float h = glutGet(GLUT_WINDOW_HEIGHT);
+	float meioW = w/2;
+	float meioH = h/2;
+	float diffX, diffY;
+	float limit;
+	
+	
+	if (!wrap) {
+		diffX = xx - meioW;		//dist‰ncia percorrida pelo rato no eixo do xx
+		alpha -= 0.002*diffX;
+		
+		diffY = (yy - meioH)*0.002; //dist‰ncia percorrida pelo rato no eixo do xx
+		
+		if (view == FPS) limit=M_PI/4;	 //limitar o angulo 'beta' consoante o modo de vista
+		else limit = M_PI/8;
+		
+		if ((beta+diffY) > -limit && (beta+diffY) <limit)  
+			beta += diffY;
+		
+		wrap=true;
+		glutWarpPointer(meioW,meioH);	//posicionar o cursor no centro
+		
+	} else {
+		wrap=false;
+	}
+		
+}
+
+// escrever função de processamento do teclado
+void pressKey(unsigned char key, int xx, int yy) {   
+	
+	switch(key) {
+		//activar teclas
+		case 'a': left=1; break;
+		case 'd': right=1; break;
+		case 'w': frente=1; break;
+		case 's': traz=1; break;
+			
+		//fazer a troca de FPS para TPS e vice versa e calcular posi›es do jogador
+		case 'v' :                           
+			if(view == FPS) {
+				playerX = camX; playerY = camY; playerZ = camZ;	
+				view = TPS;
+				calcPos(alpha, beta);
+			}
+			else {
+				camX = playerX; camY = playerY; camZ = playerZ;
+				view = FPS;
+				calcPos(alpha, beta);
+			}
+			break; 
+			
+		//ESC pa sair
+		case 27 :                           
+			exit(0);
+
+		case 'p' :
+			funcaoMenu(key); break;
+
+	}
+}
+
+//desativar teclas
+void releaseKey(unsigned char key, int x, int y) {
+	switch(key) {
+		case 'a': left=0; break;
+		case 'd': right=0; break;
+		case 'w': frente=0; break;
+		case 's': traz=0; break;
+	}
+}
+
+void pressSpKey(int key, int xx, int yy) {
+}
+
+void releaseSpKey(int key, int x, int y) {
+}
+
+void funcaoMove(int valor) {
+	
+	bool move=true;	
+	for(int i=0; i<nArvores; i++){
+		if((pow((playerX-arvores[i][XX]),2)+pow((playerY-arvores[i][YY]),2)+pow((playerZ-arvores[i][ZZ]),2)) <= pow(raioArvore,2)){
+		   move=false;
+		}
+	}
+
+	if (frente && move) {
+		if(view == FPS) {                  //Utilisa o vector director para orientar a nova posicao
+			camX += dirX;                  //da camara e para onde ela aponta
+			camZ += dirZ;
+			playerX = camX;
+			playerZ = camZ;
+		}
+		else {
+			playerX += dirX;               
+			playerZ += dirZ;
+		}
+	}
+	
+	if (traz) {
+		if(view == FPS) {
+			camX -= dirX;
+			camZ -= dirZ;
+			playerX = camX;
+			playerZ = camZ;
+		}
+		else {
+			playerX -= dirX;
+			playerZ -= dirZ;
+		}
+	}
+	
+	if (left ) {
+		if(view == FPS) {                  //Utilisa o vecto diretor orientado a direita para
+			camX -= rightX;               //os movimentos laterais
+			camZ -= rightZ;
+			eyeX -= rightX;
+			eyeZ -= rightZ;
+			playerX = camX;
+			playerZ = camZ;
+		
+		}
+		else {
+			playerX -= rightX;
+			playerZ -= rightZ;
+		}
+	}
+	
+	if (right ) {
+		if(view == FPS) {
+			camX += rightX;
+			camZ += rightZ;
+			eyeX += rightX;
+			eyeZ += rightZ;
+		playerX = camX;
+			playerZ = camZ;
+		}
+		else {
+			playerX += rightX;
+			playerZ += rightZ;
+		}
+	}
+	
+	calcPos(alpha, beta);
+}
+
+void funcaoMenu(unsigned char key){
+	int estado=1;
+	while (1){
+		//textoMenu();
+		switch (key){
+			case 's':
+				exit(0);break;
+			case 'a':
+				printf("nada"); break;
+			case 'c':
+				estado=0; break;
+			case 'r':
+				//main(argc, &argv); 
+				break;
+		}
+	}
+}

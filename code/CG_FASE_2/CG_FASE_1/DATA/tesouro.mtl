@@ -1,0 +1,29 @@
+#
+# tesouro.mtl
+#
+
+newmtl Metal_Aluminum_Anodized
+illum 2
+Kd 0.792157 0.819608 0.858824
+Ka 0.000000 0.000000 0.000000
+Ks 0.330000 0.330000 0.330000
+Ke 0.000000 0.000000 0.000000
+Ns 0.000000
+map_Kd \\Lappy-wifi\nunofgs\Documents\School\CG\Trabalho 1\KeyFighter\Recursos/tesouro/Metal_Aluminum_Anodized.jpg
+
+newmtl Wood_Cherry_Original
+illum 2
+Kd 0.596078 0.337255 0.164706
+Ka 0.000000 0.000000 0.000000
+Ks 0.330000 0.330000 0.330000
+Ke 0.000000 0.000000 0.000000
+Ns 0.000000
+map_Kd \\Lappy-wifi\nunofgs\Documents\School\CG\Trabalho 1\KeyFighter\Recursos/tesouro/Wood_Cherry_Original.jpg
+
+newmtl Color_008
+illum 2
+Kd 0.117647 0.117647 0.117647
+Ka 0.000000 0.000000 0.000000
+Ks 0.330000 0.330000 0.330000
+Ke 0.000000 0.000000 0.000000
+Ns 0.000000

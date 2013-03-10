@@ -1,0 +1,28 @@
+#define M_PI 3.14
+
+#define SIZE 1000 // tamanho do terreno em m^2
+#define FPS 0 //Especifica o modo FPS
+#define TPS 1 //Especifica o modo TPS
+
+#define N_KEYS 4 //Numero de chaves
+#define RADAR_DIST 100 //distancia minima de uma chave para ser detetada
+#define nTorres 5 // total de torres no vale
+
+#define nChaves 1 //total de chaves 
+#define nArvores 2 // total de arvores no vale
+#define radarChave 500 // distancia para detetar chaves
+#define radarTorre 1000 // distancia para torres detectarem o jogador
+#define NAME "Planeta XPTO" //nome da janela
+#define TEXTURE "DATA/areia.jpg" // textura a carregar
+#define TERRAIN "DATA/terreno3.png" // textura a carregar 
+<<<<<<< .mine
+#define ALTURA_MAX 50	// altura maxima dos relevos
+=======
+#define ALTURA_MAX 100	// altura maxima dos relevos
+>>>>>>> .r238
+#define XX 0
+#define YY 1
+#define ZZ 2
+#define nBalas 100
+#define RAD 57.29577951
+#define distToque 5 // distancia de toque em objecto

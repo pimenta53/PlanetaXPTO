@@ -1,0 +1,77 @@
+K 25
+svn:wc:ra_dav:version-url
+V 48
+/svn/!svn/ver/184/CG_FASE_1/CG_FASE_1/Source/md2
+END
+Md2Player.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svn/!svn/ver/184/CG_FASE_1/CG_FASE_1/Source/md2/Md2Player.cpp
+END
+Texture.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/!svn/ver/171/CG_FASE_1/CG_FASE_1/Source/md2/Texture.cpp
+END
+TextureManager.h
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svn/!svn/ver/171/CG_FASE_1/CG_FASE_1/Source/md2/TextureManager.h
+END
+Image.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/svn/!svn/ver/171/CG_FASE_1/CG_FASE_1/Source/md2/Image.cpp
+END
+Md2Model.cpp
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/!svn/ver/171/CG_FASE_1/CG_FASE_1/Source/md2/Md2Model.cpp
+END
+Anorms.h
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/!svn/ver/171/CG_FASE_1/CG_FASE_1/Source/md2/Anorms.h
+END
+DataManager.inl
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svn/!svn/ver/171/CG_FASE_1/CG_FASE_1/Source/md2/DataManager.inl
+END
+md2Player.h
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/!svn/ver/171/CG_FASE_1/CG_FASE_1/Source/md2/md2Player.h
+END
+texture.h
+K 25
+svn:wc:ra_dav:version-url
+V 58
+/svn/!svn/ver/171/CG_FASE_1/CG_FASE_1/Source/md2/texture.h
+END
+Image.h
+K 25
+svn:wc:ra_dav:version-url
+V 56
+/svn/!svn/ver/171/CG_FASE_1/CG_FASE_1/Source/md2/Image.h
+END
+Md2Model.h
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/svn/!svn/ver/171/CG_FASE_1/CG_FASE_1/Source/md2/Md2Model.h
+END
+DataManager.h
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svn/!svn/ver/171/CG_FASE_1/CG_FASE_1/Source/md2/DataManager.h
+END
